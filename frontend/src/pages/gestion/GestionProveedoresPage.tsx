@@ -42,6 +42,7 @@ export function GestionProveedoresPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Red de atención"
         titulo="Proveedores"
         descripcion="Red de proveedores que reciben asignaciones automáticas. Para crear o editar en detalle usa el admin de Django."
       />

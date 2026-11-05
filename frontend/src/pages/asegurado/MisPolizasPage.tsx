@@ -1,17 +1,15 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { CarIcon, LinkIcon, ShieldCheckIcon } from "lucide-react"
+import { CarIcon, LinkIcon, ShieldCheckIcon, ShieldOffIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import { Encabezado, ErrorAlert, errorCampo, ServicioIcono } from "@/components/comunes"
-import { Badge } from "@/components/ui/badge"
+import { Encabezado, ErrorAlert, errorCampo, ServicioTile } from "@/components/comunes"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -39,6 +37,7 @@ import { usePolizas } from "@/hooks/use-datos"
 import { api } from "@/lib/api"
 import { formatFecha } from "@/lib/format"
 import type { Poliza } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 export function MisPolizasPage() {
   const polizas = usePolizas()
@@ -46,6 +45,7 @@ export function MisPolizasPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Cobertura"
         titulo="Mis pólizas"
         descripcion="Pólizas vinculadas a tu cuenta y servicios cubiertos."
         acciones={<VincularDialog />}
@@ -53,8 +53,8 @@ export function MisPolizasPage() {
       <ErrorAlert error={polizas.error} />
       {polizas.isPending ? (
         <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-56" />
-          <Skeleton className="h-56" />
+          <Skeleton className="h-80" />
+          <Skeleton className="h-80" />
         </div>
       ) : polizas.data?.results.length ? (
         <div className="grid gap-4 md:grid-cols-2">
@@ -63,7 +63,7 @@ export function MisPolizasPage() {
           ))}
         </div>
       ) : (
-        <Empty className="border">
+        <Empty className="border border-dashed bg-card">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <ShieldCheckIcon />
@@ -78,41 +78,69 @@ export function MisPolizasPage() {
 }
 
 function PolizaCard({ poliza: p }: { poliza: Poliza }) {
+  const vehiculo = [p.marca, p.linea, p.modelo].filter(Boolean).join(" ")
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Póliza {p.numero}</CardTitle>
-        <CardDescription>
-          {p.titular_nombre} · Vigencia {formatFecha(p.fecha_inicio)} – {formatFecha(p.fecha_fin)}
-        </CardDescription>
-        <CardAction>
-          <Badge variant={p.vigente ? "default" : "destructive"}>{p.vigente ? "Vigente" : "No vigente"}</Badge>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-sm">
-          <CarIcon className="text-muted-foreground" />
-          <span>
-            {[p.marca, p.linea, p.modelo].filter(Boolean).join(" ")} {p.color && `· ${p.color}`}
+    <Card className="pt-0">
+      <div
+        className={cn(
+          "relative overflow-hidden p-5 text-primary-foreground",
+          p.vigente ? "bg-marca" : "bg-muted-foreground"
+        )}
+      >
+        <div className="bg-trama pointer-events-none absolute inset-0 opacity-25" />
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium tracking-wider text-primary-foreground/75 uppercase">
+              Póliza de asistencia
+            </span>
+            <span className="font-mono text-2xl font-semibold tracking-wide">{p.numero}</span>
+          </div>
+          <span className="flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-2.5 py-1 text-xs font-medium ring-1 ring-primary-foreground/25">
+            {p.vigente ? <ShieldCheckIcon className="size-3.5" /> : <ShieldOffIcon className="size-3.5" />}
+            {p.vigente ? "Vigente" : "No vigente"}
           </span>
-          {p.placa && <Badge variant="outline">{p.placa}</Badge>}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {p.servicios_cubiertos_detalle.map((s) => {
-            return (
-              <Badge key={s.id} variant="secondary">
-                <ServicioIcono codigo={s.codigo} data-icon="inline-start" />
-                {s.nombre}
-              </Badge>
-            )
-          })}
+        <div className="relative mt-6 flex flex-wrap items-end justify-between gap-3 text-sm">
+          <div className="flex flex-col">
+            <span className="text-xs text-primary-foreground/70">Titular</span>
+            <span className="font-medium">{p.titular_nombre}</span>
+          </div>
+          <div className="flex flex-col text-right">
+            <span className="text-xs text-primary-foreground/70">Vigencia</span>
+            <span className="font-medium">
+              {formatFecha(p.fecha_inicio)} – {formatFecha(p.fecha_fin)}
+            </span>
+          </div>
+        </div>
+      </div>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CarIcon className="size-4 text-muted-foreground" />
+          {vehiculo || "Vehículo"}
+          {p.color && <span className="font-normal text-muted-foreground">· {p.color}</span>}
+        </CardTitle>
+        {p.max_asistencias_anuales > 0 && (
+          <CardDescription>Hasta {p.max_asistencias_anuales} asistencias por año.</CardDescription>
+        )}
+        {p.placa && (
+          <CardAction>
+            <span className="rounded-md border-2 border-foreground/80 bg-warning px-2 py-0.5 font-mono text-sm font-bold tracking-widest text-warning-foreground">
+              {p.placa}
+            </span>
+          </CardAction>
+        )}
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <span className="text-xs font-medium text-muted-foreground uppercase">Servicios cubiertos</span>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {p.servicios_cubiertos_detalle.map((s) => (
+            <span key={s.id} className="flex items-center gap-2 rounded-lg bg-muted/60 p-2 text-xs font-medium">
+              <ServicioTile codigo={s.codigo} size="sm" />
+              <span className="truncate">{s.nombre}</span>
+            </span>
+          ))}
         </div>
       </CardContent>
-      {p.max_asistencias_anuales > 0 && (
-        <CardFooter className="text-sm text-muted-foreground">
-          Máximo {p.max_asistencias_anuales} asistencias por año.
-        </CardFooter>
-      )}
     </Card>
   )
 }

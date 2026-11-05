@@ -39,17 +39,48 @@ export const ESTADOS: Record<Estado, string> = {
   CANCELADA: "Cancelada",
 }
 
-type BadgeVariant = "default" | "secondary" | "destructive" | "outline"
+type BadgeVariant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "success"
+  | "warning"
+  | "info"
 
 export const VARIANTE_ESTADO: Record<Estado, BadgeVariant> = {
-  PENDIENTE: "secondary",
+  PENDIENTE: "warning",
   SIN_PROVEEDOR: "destructive",
-  ASIGNADA: "default",
-  EN_CAMINO: "default",
+  ASIGNADA: "info",
+  EN_CAMINO: "info",
   EN_SITIO: "default",
   EN_PROCESO: "default",
-  FINALIZADA: "outline",
+  FINALIZADA: "success",
   CANCELADA: "secondary",
+}
+
+/** Clases de color (fondo suave + texto) para el icono de cada tipo de servicio. */
+export const TONO_SERVICIO: Record<CodigoServicio, string> = {
+  GRUA: "bg-chart-1/12 text-chart-1",
+  CARRO_TALLER: "bg-chart-2/14 text-chart-2",
+  LEGAL: "bg-chart-4/12 text-chart-4",
+  CERRAJERIA: "bg-chart-3/16 text-chart-3",
+  PASO_CORRIENTE: "bg-chart-3/16 text-chart-3",
+  CAMBIO_LLANTA: "bg-chart-5/12 text-chart-5",
+  COMBUSTIBLE: "bg-chart-5/12 text-chart-5",
+  OTRA: "bg-muted text-muted-foreground",
+}
+
+export function tonoServicio(codigo: string) {
+  return TONO_SERVICIO[codigo as CodigoServicio] ?? TONO_SERVICIO.OTRA
+}
+
+/** Saludo según la hora local. */
+export function saludo() {
+  const h = new Date().getHours()
+  if (h < 12) return "Buenos días"
+  if (h < 19) return "Buenas tardes"
+  return "Buenas noches"
 }
 
 export const ESTADOS_ACTIVOS: Estado[] = [

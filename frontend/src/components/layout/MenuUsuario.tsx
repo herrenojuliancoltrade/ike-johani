@@ -2,6 +2,7 @@ import { useNavigate } from "react-router"
 import { LogOutIcon, MonitorIcon, MoonIcon, SunIcon, UserIcon } from "lucide-react"
 
 import { useAuth } from "@/auth/auth-context"
+import { IconoInstalar, InstalarApp } from "@/components/instalar-app"
 import { useTheme } from "@/components/theme-provider"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,9 @@ export function MenuUsuario() {
         render={<Button variant="ghost" size="icon" aria-label="Menú de usuario" />}
       >
         <Avatar className="size-8">
-          <AvatarFallback>{iniciales(nombre) || <UserIcon />}</AvatarFallback>
+          <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+            {iniciales(nombre) || <UserIcon />}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
@@ -80,6 +83,19 @@ export function MenuUsuario() {
           </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <InstalarApp>
+          {(abrir) => (
+            <>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={abrir}>
+                  <IconoInstalar />
+                  Instalar app
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+            </>
+          )}
+        </InstalarApp>
         <DropdownMenuGroup>
           <DropdownMenuItem
             variant="destructive"

@@ -11,6 +11,9 @@ export const API_URL = (
 
 export const POLLING_MS = Number(import.meta.env.VITE_POLLING_MS ?? 10000)
 
+/** Teléfono de la línea de asistencia 24/7 (opcional; si no existe no se muestra). */
+export const LINEA_ASISTENCIA: string = import.meta.env.VITE_LINEA_ASISTENCIA ?? ""
+
 const ACCESS_KEY = "ike.access"
 const REFRESH_KEY = "ike.refresh"
 export const LOGOUT_EVENT = "ike:logout"

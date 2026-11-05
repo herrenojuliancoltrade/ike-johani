@@ -1,25 +1,19 @@
 import { useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router"
+import { ArrowRightIcon, IdCardIcon, KeyRoundIcon } from "lucide-react"
 
 import { type RegistroData, useAuth } from "@/auth/auth-context"
 import { ErrorAlert, errorCampo } from "@/components/comunes"
 import { AuthShell } from "@/components/layout/AuthShell"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
+  FieldLegend,
+  FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -101,78 +95,97 @@ export function RegistroPage() {
 
   return (
     <AuthShell>
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle>Crear cuenta de asegurado</CardTitle>
-          <CardDescription>
-            Necesitas tu número de póliza y el documento del titular.
-          </CardDescription>
-        </CardHeader>
+      <div className="flex w-full max-w-lg flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-semibold">Crea tu cuenta</h1>
+          <p className="text-muted-foreground">
+            Ten a la mano tu número de póliza y el documento del titular.
+          </p>
+        </div>
+
         <form onSubmit={onSubmit}>
-          <CardContent>
-            <FieldGroup>
-              <ErrorAlert error={error} titulo="No pudimos crear tu cuenta" />
-              <div className="grid gap-4 sm:grid-cols-2">
-                {campo("first_name", "Nombres", { autoComplete: "given-name" })}
-                {campo("last_name", "Apellidos", { autoComplete: "family-name" })}
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="tipo_documento">Tipo de documento</FieldLabel>
-                  <Select
-                    items={TIPOS_DOCUMENTO}
-                    value={form.tipo_documento}
-                    onValueChange={(v) =>
-                      v && setForm((f) => ({ ...f, tipo_documento: v as TipoDocumento }))
-                    }
-                  >
-                    <SelectTrigger id="tipo_documento" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {TIPOS_DOCUMENTO.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {campo("documento", "Número de documento", { inputMode: "numeric" })}
-              </div>
-              {campo("telefono", "Celular", { type: "tel", autoComplete: "tel" })}
-              {campo(
-                "numero_poliza",
-                "Número de póliza",
-                { placeholder: "POL-0000" },
-                "Lo encuentras en tu carátula de póliza."
-              )}
-              <FieldSeparator />
-              {campo("email", "Email", { type: "email", autoComplete: "email" })}
-              {campo(
-                "password",
-                "Contraseña",
-                { type: "password", autoComplete: "new-password", minLength: 8 },
-                "Mínimo 8 caracteres, no solo números."
-              )}
-            </FieldGroup>
-          </CardContent>
-          <CardFooter className="mt-6 flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={enviando}>
+          <FieldGroup>
+            <ErrorAlert error={error} titulo="No pudimos crear tu cuenta" />
+
+            <FieldSet>
+              <FieldLegend className="flex items-center gap-2">
+                <IdCardIcon className="size-4 text-primary" />
+                Tus datos
+              </FieldLegend>
+              <FieldGroup>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {campo("first_name", "Nombres", { autoComplete: "given-name" })}
+                  {campo("last_name", "Apellidos", { autoComplete: "family-name" })}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="tipo_documento">Tipo de documento</FieldLabel>
+                    <Select
+                      items={TIPOS_DOCUMENTO}
+                      value={form.tipo_documento}
+                      onValueChange={(v) =>
+                        v && setForm((f) => ({ ...f, tipo_documento: v as TipoDocumento }))
+                      }
+                    >
+                      <SelectTrigger id="tipo_documento" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {TIPOS_DOCUMENTO.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  {campo("documento", "Número de documento", { inputMode: "numeric" })}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {campo("telefono", "Celular", { type: "tel", autoComplete: "tel" })}
+                  {campo(
+                    "numero_poliza",
+                    "Número de póliza",
+                    { placeholder: "POL-0000" },
+                    "Está en la carátula de tu póliza."
+                  )}
+                </div>
+              </FieldGroup>
+            </FieldSet>
+
+            <FieldSet>
+              <FieldLegend className="flex items-center gap-2">
+                <KeyRoundIcon className="size-4 text-primary" />
+                Tu acceso
+              </FieldLegend>
+              <FieldGroup>
+                {campo("email", "Correo electrónico", { type: "email", autoComplete: "email" })}
+                {campo(
+                  "password",
+                  "Contraseña",
+                  { type: "password", autoComplete: "new-password", minLength: 8 },
+                  "Mínimo 8 caracteres, no solo números."
+                )}
+              </FieldGroup>
+            </FieldSet>
+
+            <Button type="submit" size="lg" className="w-full" disabled={enviando}>
               {enviando && <Spinner data-icon="inline-start" />}
               Crear cuenta
+              {!enviando && <ArrowRightIcon data-icon="inline-end" />}
             </Button>
-            <p className="text-sm text-muted-foreground">
-              ¿Ya tienes cuenta?{" "}
-              <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-                Inicia sesión
-              </Link>
-            </p>
-          </CardFooter>
+          </FieldGroup>
         </form>
-      </Card>
+
+        <p className="text-center text-sm text-muted-foreground">
+          ¿Ya tienes cuenta?{" "}
+          <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            Inicia sesión
+          </Link>
+        </p>
+      </div>
     </AuthShell>
   )
 }

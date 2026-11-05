@@ -3,18 +3,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   EllipsisIcon,
   EyeIcon,
+  HourglassIcon,
+  InboxIcon,
   ListOrderedIcon,
   RefreshCwIcon,
   RepeatIcon,
   SearchIcon,
+  TriangleAlertIcon,
+  TruckIcon,
   XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { Encabezado, ErrorAlert, EstadoBadge, mensajeError, ServicioIcono } from "@/components/comunes"
+import { Encabezado, ErrorAlert, EstadoBadge, mensajeError, ServicioTile, StatCard } from "@/components/comunes"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -92,6 +96,7 @@ export function GestionSolicitudesPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Centro de control"
         titulo="Solicitudes de asistencia"
         descripcion="Monitorea las asignaciones automáticas y gestiona excepciones."
         acciones={
@@ -102,27 +107,23 @@ export function GestionSolicitudesPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card size="sm">
-          <CardHeader>
-            <CardDescription>Total (filtro actual)</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">{solicitudes.data?.count ?? "—"}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card size="sm">
-          <CardHeader>
-            <CardDescription>En atención (esta página)</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">
-              {conteo("ASIGNADA") + conteo("EN_CAMINO") + conteo("EN_SITIO") + conteo("EN_PROCESO")}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card size="sm">
-          <CardHeader>
-            <CardDescription>Sin proveedor (esta página)</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">{conteo("SIN_PROVEEDOR")}</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard titulo="Solicitudes" valor={solicitudes.data?.count ?? "—"} descripcion="Con el filtro actual" icono={InboxIcon} />
+        <StatCard
+          titulo="En atención"
+          valor={conteo("ASIGNADA") + conteo("EN_CAMINO") + conteo("EN_SITIO") + conteo("EN_PROCESO")}
+          descripcion="En esta página"
+          icono={TruckIcon}
+          tono="info"
+        />
+        <StatCard titulo="Pendientes" valor={conteo("PENDIENTE")} descripcion="En esta página" icono={HourglassIcon} tono="warning" />
+        <StatCard
+          titulo="Sin proveedor"
+          valor={conteo("SIN_PROVEEDOR")}
+          descripcion="Requieren gestión"
+          icono={TriangleAlertIcon}
+          tono="destructive"
+        />
       </div>
 
       <Card>
@@ -196,7 +197,7 @@ export function GestionSolicitudesPage() {
                       <TableCell className="font-medium">{s.id}</TableCell>
                       <TableCell>
                         <span className="flex items-center gap-2">
-                          <ServicioIcono codigo={s.tipo_servicio} className="text-muted-foreground" />
+                          <ServicioTile codigo={s.tipo_servicio} size="sm" />
                           {s.tipo_servicio_nombre}
                         </span>
                       </TableCell>

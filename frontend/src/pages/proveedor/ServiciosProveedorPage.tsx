@@ -103,7 +103,7 @@ function Lista({ datos }: { datos: SolicitudGestion[] }) {
 
 function Vacio({ texto }: { texto: string }) {
   return (
-    <Empty className="border">
+    <Empty className="border border-dashed bg-card">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <ClipboardListIcon />
@@ -135,6 +135,7 @@ export function ServiciosProveedorPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Panel del proveedor"
         titulo="Servicios asignados"
         descripcion={usuario?.proveedor_nombre ?? "Tu empresa"}
       />

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
-import { Link, useNavigate } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ArrowLeftIcon, CrosshairIcon, MapPinIcon, SendIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/auth/auth-context"
-import { Encabezado, ErrorAlert, errorCampo, ServicioIcono } from "@/components/comunes"
+import { Encabezado, ErrorAlert, errorCampo, NumeroPaso, ServicioTile } from "@/components/comunes"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -58,8 +58,9 @@ export function NuevaAsistenciaPage() {
   const queryClient = useQueryClient()
   const tipos = useTiposServicio()
   const polizas = usePolizas()
+  const [params] = useSearchParams()
 
-  const [servicio, setServicio] = useState<string>("")
+  const [servicio, setServicio] = useState<string>(params.get("servicio") ?? "")
   const [polizaElegida, setPolizaId] = useState<string | null>(null)
   const [descripcion, setDescripcion] = useState("")
   const [direccion, setDireccion] = useState("")
@@ -160,6 +161,7 @@ export function NuevaAsistenciaPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Nueva solicitud"
         titulo="Solicitar asistencia"
         descripcion="Cuéntanos qué pasó y dónde estás. Te asignaremos el proveedor más cercano."
         acciones={
@@ -184,7 +186,10 @@ export function NuevaAsistenciaPage() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>1. ¿Qué servicio necesitas?</CardTitle>
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <NumeroPaso n={1} />
+                ¿Qué servicio necesitas?
+              </CardTitle>
               <CardDescription>Selecciona el tipo de asistencia.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -206,7 +211,7 @@ export function NuevaAsistenciaPage() {
                       return (
                         <FieldLabel key={t.codigo} htmlFor={`servicio-${t.codigo}`}>
                           <Field orientation="horizontal">
-                            <ServicioIcono codigo={t.codigo} />
+                            <ServicioTile codigo={t.codigo} />
                             <FieldContent>
                               <FieldTitle>{t.nombre}</FieldTitle>
                               <FieldDescription>{t.descripcion}</FieldDescription>
@@ -225,7 +230,10 @@ export function NuevaAsistenciaPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>2. Cuéntanos qué pasó</CardTitle>
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <NumeroPaso n={2} />
+                Cuéntanos qué pasó
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <FieldGroup>
@@ -297,10 +305,13 @@ export function NuevaAsistenciaPage() {
           </Card>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 lg:sticky lg:top-20 lg:h-fit">
           <Card>
             <CardHeader>
-              <CardTitle>3. ¿Dónde estás?</CardTitle>
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <NumeroPaso n={3} />
+                ¿Dónde estás?
+              </CardTitle>
               <CardDescription>Usamos tu ubicación para encontrar el proveedor más cercano.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -385,7 +396,7 @@ export function NuevaAsistenciaPage() {
             </CardContent>
             <CardFooter className="flex flex-col items-stretch gap-3">
               <ErrorAlert error={crear.error} titulo="No se pudo crear la solicitud" />
-              <Button type="submit" size="lg" disabled={!puedeEnviar}>
+              <Button type="submit" size="lg" className="w-full" disabled={!puedeEnviar}>
                 {crear.isPending ? <Spinner data-icon="inline-start" /> : <SendIcon data-icon="inline-start" />}
                 Solicitar asistencia
               </Button>

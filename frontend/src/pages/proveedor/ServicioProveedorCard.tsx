@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { EstadoBadge, mensajeError, ServicioIcono } from "@/components/comunes"
+import { EstadoBadge, mensajeError, ServicioTile } from "@/components/comunes"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -77,8 +77,8 @@ export function ServicioProveedorCard({ s, enlace = true }: { s: SolicitudGestio
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ServicioIcono codigo={s.tipo_servicio} />
+        <CardTitle className="flex items-center gap-3 text-base">
+          <ServicioTile codigo={s.tipo_servicio} />
           {enlace ? <Link to={`/proveedor/${s.id}`}>{s.tipo_servicio_nombre} #{s.id}</Link> : `${s.tipo_servicio_nombre} #${s.id}`}
         </CardTitle>
         <CardDescription>

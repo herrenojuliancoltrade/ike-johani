@@ -19,6 +19,7 @@ import {
   ItemContent,
   ItemDescription,
   ItemGroup,
+  ItemMedia,
   ItemTitle,
 } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -28,6 +29,7 @@ import {
   useNotificaciones,
 } from "@/hooks/use-notificaciones"
 import { formatFechaHora } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 export function NotificacionesPage() {
   const { usuario } = useAuth()
@@ -46,6 +48,7 @@ export function NotificacionesPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Centro de mensajes"
         titulo="Notificaciones"
         acciones={
           <Button variant="outline" onClick={() => marcarTodas.mutate()} disabled={marcarTodas.isPending}>
@@ -59,9 +62,19 @@ export function NotificacionesPage() {
         <Skeleton className="h-64 w-full" />
       ) : notificaciones.data?.results.length ? (
         <>
-          <ItemGroup>
+          <ItemGroup className="gap-2">
             {notificaciones.data.results.map((n) => (
-              <Item key={n.id} variant={n.leida ? "outline" : "muted"}>
+              <Item key={n.id} variant="outline" className={cn("bg-card", !n.leida && "border-primary/30 bg-primary/5")}>
+                <ItemMedia>
+                  <span
+                    className={cn(
+                      "flex size-10 items-center justify-center rounded-xl",
+                      n.leida ? "bg-muted text-muted-foreground" : "bg-primary/12 text-primary"
+                    )}
+                  >
+                    <BellIcon className="size-5" />
+                  </span>
+                </ItemMedia>
                 <ItemContent>
                   <ItemTitle>
                     {n.titulo}
@@ -101,7 +114,7 @@ export function NotificacionesPage() {
           </div>
         </>
       ) : (
-        <Empty className="border">
+        <Empty className="border border-dashed bg-card">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <BellIcon />

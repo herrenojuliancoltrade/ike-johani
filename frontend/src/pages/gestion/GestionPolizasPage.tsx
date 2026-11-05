@@ -50,6 +50,7 @@ export function GestionPolizasPage() {
   return (
     <>
       <Encabezado
+        antetitulo="Cobertura"
         titulo="Pólizas"
         descripcion="Pólizas cargadas por la aseguradora. El asegurado las vincula al registrarse."
         acciones={<CrearPolizaDialog />}

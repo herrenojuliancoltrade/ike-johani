@@ -6,7 +6,6 @@ import {
   BuildingIcon,
   CarIcon,
   CheckIcon,
-  CircleIcon,
   ClockIcon,
   MapPinIcon,
   PhoneIcon,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { Encabezado, ErrorAlert, EstadoBadge, mensajeError, ServicioIcono } from "@/components/comunes"
+import { Encabezado, ErrorAlert, EstadoBadge, mensajeError, ServicioTile } from "@/components/comunes"
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   AlertDialog,
@@ -73,6 +72,7 @@ import {
   urlMapa,
 } from "@/lib/format"
 import type { Seguimiento, Solicitud } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 const FINALES = ["FINALIZADA", "CANCELADA"]
 
@@ -126,14 +126,17 @@ export function DetalleAsistenciaPage() {
   return (
     <>
       <Encabezado
+        antetitulo={`Solicitud #${s.id}`}
         titulo={
           <span className="flex flex-wrap items-center gap-3">
-            <ServicioIcono codigo={s.tipo_servicio} />
-            {s.tipo_servicio_nombre}
-            <EstadoBadge estado={seg.estado} />
+            <ServicioTile codigo={s.tipo_servicio} size="lg" />
+            <span className="flex flex-col gap-1.5">
+              {s.tipo_servicio_nombre}
+              <EstadoBadge estado={seg.estado} className="w-fit" />
+            </span>
           </span>
         }
-        descripcion={`Solicitud #${s.id} · ${formatFechaHora(s.creado)} · Póliza ${s.poliza_numero}`}
+        descripcion={`${formatFechaHora(s.creado)} · Póliza ${s.poliza_numero}`}
         acciones={
           <>
             <Button variant="ghost" render={<Link to="/asistencias" />} nativeButton={false}>
@@ -173,11 +176,12 @@ export function DetalleAsistenciaPage() {
                     : "Datos del proveedor que atiende tu servicio."}
                 </CardDescription>
                 {enRuta && seg.eta_minutos !== null && (
-                  <CardAction className="flex flex-col items-end">
-                    <span className="text-3xl font-semibold tabular-nums">{seg.eta_minutos} min</span>
-                    <span className="text-sm text-muted-foreground">
-                      Llega aprox. {formatHora(seg.hora_estimada_llegada)}
+                  <CardAction className="flex flex-col items-end rounded-2xl bg-primary/10 px-4 py-2 text-primary">
+                    <span className="text-4xl leading-none font-semibold tabular-nums">
+                      {seg.eta_minutos}
+                      <span className="text-lg font-medium"> min</span>
                     </span>
+                    <span className="text-xs">llega aprox. {formatHora(seg.hora_estimada_llegada)}</span>
                   </CardAction>
                 )}
               </CardHeader>
@@ -272,7 +276,7 @@ export function DetalleAsistenciaPage() {
           </Card>
         </div>
 
-        <Card className="h-fit">
+        <Card className="h-fit lg:sticky lg:top-20">
           <CardHeader>
             <CardTitle>Seguimiento</CardTitle>
             <CardDescription className="flex items-center gap-1">
@@ -283,16 +287,34 @@ export function DetalleAsistenciaPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
             {seg.estado !== "CANCELADA" && <Progress value={Math.max(progreso, 0)} />}
-            <ol className="flex flex-col gap-4">
-              {pasos.map((p) => (
-                <li key={p.estado} className="flex items-center gap-3 text-sm">
-                  {p.completado ? (
-                    <CheckIcon className="text-primary" />
-                  ) : (
-                    <CircleIcon className="text-muted-foreground" />
+            <ol className="flex flex-col">
+              {pasos.map((p, i) => (
+                <li key={p.estado} className="relative flex gap-3 pb-5 last:pb-0">
+                  {i < pasos.length - 1 && (
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "absolute top-8 bottom-1 left-3.5 w-0.5 -translate-x-1/2 rounded-full",
+                        pasos[i + 1]?.completado ? "bg-primary" : "bg-border"
+                      )}
+                    />
                   )}
-                  <span className={p.actual ? "font-medium" : p.completado ? "" : "text-muted-foreground"}>
-                    {p.nombre}
+                  <span
+                    className={cn(
+                      "relative flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-semibold",
+                      p.completado
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-muted-foreground",
+                      p.actual && "ring-4 ring-primary/20"
+                    )}
+                  >
+                    {p.completado ? <CheckIcon className="size-3.5" /> : i + 1}
+                  </span>
+                  <span className="flex flex-col pt-1 text-sm">
+                    <span className={cn(p.actual && "font-semibold", !p.completado && "text-muted-foreground")}>
+                      {p.nombre}
+                    </span>
+                    {p.actual && <span className="text-xs text-primary">Estado actual</span>}
                   </span>
                 </li>
               ))}
@@ -300,13 +322,22 @@ export function DetalleAsistenciaPage() {
             <Separator />
             <div className="flex flex-col gap-3">
               <span className="text-sm font-medium">Historial</span>
-              {[...seg.historial].reverse().map((h, i) => (
-                <div key={i} className="flex flex-col gap-0.5 text-sm">
-                  <span className="font-medium">{h.estado_nuevo_display}</span>
-                  {h.comentario && <span className="text-muted-foreground">{h.comentario}</span>}
-                  <span className="text-xs text-muted-foreground">{formatFechaHora(h.fecha)}</span>
-                </div>
-              ))}
+              <ol className="ml-1.5 flex flex-col gap-4 border-l pl-5">
+                {[...seg.historial].reverse().map((h, i) => (
+                  <li key={i} className="relative flex flex-col gap-0.5 text-sm">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "absolute top-1.5 -left-[27px] size-2.5 rounded-full ring-4 ring-card",
+                        i === 0 ? "bg-primary" : "bg-muted-foreground/40"
+                      )}
+                    />
+                    <span className="font-medium">{h.estado_nuevo_display}</span>
+                    {h.comentario && <span className="text-muted-foreground">{h.comentario}</span>}
+                    <span className="text-xs text-muted-foreground">{formatFechaHora(h.fecha)}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
           </CardContent>
         </Card>

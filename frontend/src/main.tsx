@@ -5,10 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import "./index.css"
 import App from "./App.tsx"
 import { AuthProvider } from "@/auth/AuthProvider"
+import { AyudaInstalacionIOS } from "@/components/instalar-app"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ApiError } from "@/lib/api"
+import { registrarServiceWorker } from "@/lib/pwa"
+
+registrarServiceWorker()
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +32,7 @@ createRoot(document.getElementById("root")!).render(
         <AuthProvider>
           <TooltipProvider>
             <App />
+            <AyudaInstalacionIOS />
             <Toaster richColors position="top-center" />
           </TooltipProvider>
         </AuthProvider>
