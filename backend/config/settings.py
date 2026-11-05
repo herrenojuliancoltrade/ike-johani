@@ -9,6 +9,7 @@ cambiar DB_ENGINE=postgresql y llenar las variables DB_*.
 from datetime import timedelta
 from pathlib import Path
 
+import dj_database_url
 from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +21,21 @@ SECRET_KEY = config("SECRET_KEY", default="django-insecure-cambia-esta-clave-en-
 DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+
+# Render inyecta el dominio público del servicio (ej. ike-backend.onrender.com)
+RENDER_EXTERNAL_HOSTNAME = config("RENDER_EXTERNAL_HOSTNAME", default="")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+if not DEBUG:
+    # Render termina el TLS en su proxy y reenvía la petición por HTTP
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = config("SECURE_HSTS_SECONDS", default=0, cast=int)
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ---------------------------------------------------------------------------
 # Aplicaciones
@@ -45,8 +61,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "config.health.HealthCheckMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -76,12 +94,24 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # ---------------------------------------------------------------------------
 # Base de datos
+#   DATABASE_URL          -> si existe tiene prioridad (Render la inyecta)
 #   DB_ENGINE=sqlite      -> usa db.sqlite3 (desarrollo)
 #   DB_ENGINE=postgresql  -> usa DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 # ---------------------------------------------------------------------------
+DATABASE_URL = config("DATABASE_URL", default="")
 DB_ENGINE = config("DB_ENGINE", default="sqlite").lower()
 
-if DB_ENGINE in ("postgres", "postgresql"):
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=config("DB_CONN_MAX_AGE", default=60, cast=int),
+            conn_health_checks=True,
+            # La URL interna de Render no usa SSL; la externa sí (DB_SSL_REQUIRE=True)
+            ssl_require=config("DB_SSL_REQUIRE", default=False, cast=bool),
+        )
+    }
+elif DB_ENGINE in ("postgres", "postgresql"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -173,4 +203,26 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# WhiteNoise sirve los estáticos (admin, API navegable) comprimidos y con hash
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---------------------------------------------------------------------------
+# Logs a consola (Render los muestra en el panel)
+# ---------------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": config("LOG_LEVEL", default="INFO")},
+}

@@ -34,6 +34,31 @@ DB_PORT=5432
 
 y luego `python manage.py migrate`. El driver (`psycopg`) ya está instalado.
 
+## Despliegue en Render (Docker)
+
+El repo trae un Blueprint (`render.yaml` en la raíz) que crea la base PostgreSQL,
+este backend (Docker, `backend/Dockerfile`) y el frontend como sitio estático.
+
+1. Sube el repo a GitHub/GitLab.
+2. Render → **New → Blueprint** → elige el repo.
+3. Llena las variables que pide:
+   - `CORS_ALLOWED_ORIGINS` = `https://ike-frontend.onrender.com` (URL real del frontend, sin `/` final)
+   - `VITE_API_URL` = `https://ike-backend.onrender.com/api` (URL real del backend + `/api`)
+   - `DJANGO_SUPERUSER_EMAIL` / `DJANGO_SUPERUSER_PASSWORD` (opcional, admin inicial)
+4. Si los nombres `ike-backend` / `ike-frontend` ya estaban tomados, Render les agrega un sufijo:
+   corrige las dos URLs anteriores y vuelve a desplegar (el frontend lee `VITE_API_URL` **en el build**).
+
+Al arrancar, el contenedor (`docker-entrypoint.sh`) aplica migraciones, opcionalmente carga
+datos demo (`LOAD_DEMO_DATA=True`) y crea el superusuario si no existe. Los estáticos del admin
+los sirve WhiteNoise. Health check: `GET /api/health/`.
+
+Probar la imagen localmente:
+
+```powershell
+docker build -t ike-backend ./backend
+docker run --rm -p 8000:8000 -e DEBUG=False -e SECRET_KEY=algo-largo -e ALLOWED_HOSTS=localhost -e SECURE_SSL_REDIRECT=False ike-backend
+```
+
 ## Estructura
 
 ```
